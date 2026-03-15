@@ -65,7 +65,7 @@ Full details in [docs/SCORING.md](docs/SCORING.md).
 
 ---
 
-## 🔧 API
+##  API
 
 ```
 POST /api/analyze
@@ -106,8 +106,6 @@ Set `GITHUB_TOKEN` as an environment variable in Vercel for production rate limi
 | Exponential backoff | 1s → 2s → 4s on 403/429 responses |
 | Header monitoring | Checks `X-RateLimit-Remaining` before requests |
 
----
 
-## License
 
-MIT
+
