@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 
-// Language colors for the tags
 const LANG_COLORS: Record<string, string> = {
   JavaScript: '#f1e05a',
   TypeScript: '#3178c6',
@@ -149,7 +148,6 @@ export default function HomePage() {
       <div className="bg-grid" />
 
       <div className="app">
-        {/* Header */}
         <header className="header">
           <div className="header__badge">
             <span></span>
@@ -164,7 +162,6 @@ export default function HomePage() {
           </p>
         </header>
 
-        {/* Input Section */}
         <section className="input-section" id="input-section">
           <label className="input-section__label" htmlFor="repo-urls">
             Repository URLs (one per line)
@@ -199,14 +196,12 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Error */}
         {error && (
           <div className="error-banner" id="error-banner">
             ⚠️ {error}
           </div>
         )}
 
-        {/* Loading */}
         {loading && (
           <div className="loading">
             <div className="loading__spinner" />
@@ -215,7 +210,6 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Results */}
         {result && (
           <>
             <div className="results-header">
@@ -236,9 +230,9 @@ export default function HomePage() {
               ))}
             </div>
 
-            {result.rateLimitInfo && (
+            {result.rateLimitInfo &&(
               <div className="rate-limit">
-                API Rate Limit: {result.rateLimitInfo.remaining} / {result.rateLimitInfo.limit} requests remaining
+                API Rate Limit: {result.rateLimitInfo.remaining}/{result.rateLimitInfo.limit} requests remaining
                 &nbsp;·&nbsp; Resets at {new Date(result.rateLimitInfo.resetAt).toLocaleTimeString()}
               </div>
             )}
@@ -247,7 +241,7 @@ export default function HomePage() {
 
     
         <footer className="footer">
-          GitHub Repository Intelligence Analyzer · Built with Next.js + TypeScript
+          GitHub Repository Intelligence Analyzer·Built with Next.js + TypeScript
           <br />
           <a href="https://docs.github.com/en/rest" target="_blank" rel="noopener noreferrer">
             Powered by GitHub REST API
@@ -288,7 +282,7 @@ function ReportCard({ report }: { report: RepoReport }) {
           <span>stars</span>
         </div>
         <div className="stat">
-          <span className="stat__icon">🍴</span>
+          <span className="stat__icon"></span>
           <span className="stat__value">{formatNumber(report.forks)}</span>
           <span>forks</span>
         </div>
@@ -351,12 +345,10 @@ function ReportCard({ report }: { report: RepoReport }) {
         </div>
       )}
 
-      {/* Reasoning */}
       <div className="report-card__reasoning">
-        💡 {report.reasoning}
+         {report.reasoning}
       </div>
 
-      {/* Expandable Metrics */}
       <button
         className="btn-download"
         style={{ marginTop: '0.75rem', width: '100%', justifyContent: 'center' }}
@@ -410,7 +402,6 @@ function ReportCard({ report }: { report: RepoReport }) {
         </div>
       )}
 
-      {/* Errors */}
       {report.errors.length > 0 && (
         <div className="report-card__errors">
           {report.errors.map((err, i) => (
