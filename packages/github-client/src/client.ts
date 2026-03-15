@@ -97,6 +97,7 @@ async function fetchWithRetry(
       if (response.status === 404) return response;
 
       // Other errors
+      console.warn(`Attempt ${attempt} failed for ${url}: Status ${response.status}`);
       if (attempt < retries) {
         await sleep(Math.pow(2, attempt) * 500);
         continue;
@@ -104,6 +105,7 @@ async function fetchWithRetry(
 
       return response;
     } catch (error) {
+      console.error(`Fetch error for ${url}:`, error);
       if (attempt < retries) {
         await sleep(Math.pow(2, attempt) * 500);
         continue;
@@ -118,9 +120,13 @@ async function fetchWithRetry(
 async function fetchJSON<T>(url: string, token?: string): Promise<T | null> {
   try {
     const response = await fetchWithRetry(url, token);
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.warn(`fetchJSON not ok for ${url}: ${response.status} ${response.statusText}`);
+      return null;
+    }
     return (await response.json()) as T;
-  } catch {
+  } catch (error) {
+    console.error(`fetchJSON caught error for ${url}:`, error);
     return null;
   }
 }
@@ -135,11 +141,15 @@ async function fetchRepoData(
   const cached = cache.get<GitHubRepoData>(cacheKey);
   if (cached) return cached;
 
+  console.log(`Fetching repo data for ${owner}/${repo}...`);
   const data = await fetchJSON<Record<string, unknown>>(
     `${GITHUB_API}/repos/${owner}/${repo}`,
     token
   );
-  if (!data) return null;
+  if (!data) {
+    console.warn(`fetchRepoData returned null for ${owner}/${repo}`);
+    return null;
+  }
 
   const result: GitHubRepoData = {
     owner,
