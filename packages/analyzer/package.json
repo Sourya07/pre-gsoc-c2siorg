@@ -1,0 +1,15 @@
+{
+  "name": "@repo-analyzer/analyzer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {},
+  "dependencies": {
+    "@repo-analyzer/github-client": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
