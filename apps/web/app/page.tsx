@@ -65,6 +65,8 @@ interface RepoReport {
   activityScore: number;
   complexityScore: number;
   learningDifficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  busFactor: number;
+  riskLevel: 'High Organization Risk' | 'Moderate Risk' | 'Healthy & Decentralized';
   reasoning: string;
   metrics: RepoMetrics;
   fetchedAt: string;
@@ -255,6 +257,10 @@ export default function HomePage() {
 function ReportCard({ report }: { report: RepoReport }) {
   const [expanded, setExpanded] = useState(false);
   const difficultyClass = `difficulty-badge--${report.learningDifficulty.toLowerCase()}`;
+  
+  let riskClass = 'risk-badge--healthy';
+  if (report.riskLevel === 'High Organization Risk') riskClass = 'risk-badge--high';
+  else if (report.riskLevel === 'Moderate Risk') riskClass = 'risk-badge--moderate';
 
   return (
     <article className="report-card">
@@ -269,9 +275,14 @@ function ReportCard({ report }: { report: RepoReport }) {
             <p className="report-card__desc">{report.description}</p>
           )}
         </div>
-        <span className={`difficulty-badge ${difficultyClass}`}>
-          {report.learningDifficulty}
-        </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>
+          <span className={`difficulty-badge ${difficultyClass}`}>
+            {report.learningDifficulty}
+          </span>
+          <span className={`difficulty-badge ${riskClass}`}>
+            {report.riskLevel}
+          </span>
+        </div>
       </div>
 
 
@@ -398,6 +409,18 @@ function ReportCard({ report }: { report: RepoReport }) {
           <div className="metric">
             <span className="metric__label">Docs Folder</span>
             <span className="metric__value">{report.metrics.hasDocsFolder ? '✅' : '❌'}</span>
+          </div>
+          <div className="metric">
+            <span className="metric__label" style={{ display: 'flex', alignItems: 'center' }}>
+              Bus Factor
+              <div className="tooltip-container">
+                ⓘ
+                <span className="tooltip-text">
+                  Percentage of commits by the top contributor. A higher value indicates reliance on a single person.
+                </span>
+              </div>
+            </span>
+            <span className="metric__value">{report.busFactor}%</span>
           </div>
         </div>
       )}
