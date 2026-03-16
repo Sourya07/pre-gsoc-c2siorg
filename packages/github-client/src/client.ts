@@ -237,33 +237,68 @@ async function fetchCommitActivity(
   const cached = cache.get<GitHubCommitActivity>(cacheKey);
   if (cached) return cached;
 
-  // The stats/commit_activity endpoint returns weekly commit counts for last year
-  const data = await fetchJSON<Array<Record<string, unknown>>>(
-    `${GITHUB_API}/repos/${owner}/${repo}/stats/commit_activity`,
-    token
-  );
-
   const defaultResult: GitHubCommitActivity = {
     weeks: [],
     totalCommitsLastYear: 0,
   };
 
-  if (!data || !Array.isArray(data)) {
-    cache.set(cacheKey, defaultResult);
+  try {
+    // Primary method: Try to get total commits via the search API to be accurate
+    const searchRes = await fetchWithRetry(
+      `${GITHUB_API}/search/commits?q=repo:${owner}/${repo}`,
+      token
+    );
+    
+    let totalCommitsLastYear = 0;
+    
+    if (searchRes.ok) {
+       const searchData = await searchRes.json();
+       totalCommitsLastYear = searchData.total_count || 0;
+    } else {
+       // Fallback to the stats endpoint if search fails (e.g., due to strict rate limits)
+       const data = await fetchJSON<Array<Record<string, unknown>>>(
+         `${GITHUB_API}/repos/${owner}/${repo}/stats/commit_activity`,
+         token
+       );
+
+       if (data && Array.isArray(data)) {
+          totalCommitsLastYear = data.reduce((sum, w) => sum + ((w.total as number) || 0), 0);
+       }
+    }
+
+    const result: GitHubCommitActivity = { weeks: [], totalCommitsLastYear };
+    cache.set(cacheKey, result);
+    return result;
+  } catch (err) {
     return defaultResult;
   }
+}
 
-  const weeks = data.map(w => ({
-    week: (w.w as number) || 0,
-    total: (w.total as number) || 0,
-    days: (w.days as number[]) || [],
-  }));
+// Fetch open issues (excluding PRs)
+async function fetchOpenIssues(
+  owner: string,
+  repo: string,
+  token?: string
+): Promise<number> {
+  const cacheKey = `openIssues:${owner}/${repo}`;
+  const cached = cache.get<number>(cacheKey);
+  if (cached !== null) return cached;
 
-  const totalCommitsLastYear = weeks.reduce((sum, w) => sum + w.total, 0);
-
-  const result: GitHubCommitActivity = { weeks, totalCommitsLastYear };
-  cache.set(cacheKey, result);
-  return result;
+  try {
+    // The standard repos endpoint includes PRs in 'open_issues_count'.
+    // To get JUST issues, we use the search API:
+    const response = await fetchWithRetry(
+      `${GITHUB_API}/search/issues?q=repo:${owner}/${repo}+type:issue+state:open`,
+      token
+    );
+    if (!response.ok) return 0;
+    const data = await response.json();
+    const count = data.total_count || 0;
+    cache.set(cacheKey, count);
+    return count;
+  } catch {
+    return 0;
+  }
 }
 
 // Fetch repository tree (recursive)
@@ -434,7 +469,7 @@ export async function fetchAllRepoData(
   }
 
   // Fetch remaining data concurrently
-  const [languages, contributors, commitActivity, tree, readmeLength] =
+  const [languages, contributors, commitActivity, tree, readmeLength, accurateOpenIssues] =
     await Promise.all([
       fetchLanguages(owner, repo, token).catch(() => {
         errors.push('Failed to fetch languages');
@@ -456,7 +491,13 @@ export async function fetchAllRepoData(
         errors.push('Failed to fetch README');
         return 0;
       }),
+      fetchOpenIssues(owner, repo, token).catch(() => {
+         return repoData.openIssues; // fallback to generic count
+      })
     ]);
+
+  // Overwrite the generic open issues count (which includes PRs) with the accurate one
+  repoData.openIssues = accurateOpenIssues;
 
   const treeAnalysis = analyzeTree(tree);
 

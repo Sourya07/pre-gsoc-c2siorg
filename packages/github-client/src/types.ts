@@ -80,6 +80,8 @@ export interface RepoReport {
   activityScore: number;
   complexityScore: number;
   learningDifficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  busFactor: number;
+  riskLevel: 'High Organization Risk' | 'Moderate Risk' | 'Healthy & Decentralized';
   reasoning: string;
   metrics: {
     commitsLastYear: number;
