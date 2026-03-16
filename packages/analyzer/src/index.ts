@@ -25,6 +25,29 @@ export function analyzeRepo(
 
   const mainLanguages = languageEntries.slice(0, 5).map(([lang]) => lang);
 
+  // Calculate Bus Factor and Risk Level
+  let busFactor = 0;
+  let riskLevel: 'High Organization Risk' | 'Moderate Risk' | 'Healthy & Decentralized' = 'Healthy & Decentralized';
+  let riskReasoning = '';
+
+  const totalContributions = input.contributors.reduce((sum, c) => sum + c.contributions, 0);
+  if (totalContributions > 0) {
+     const topContributor = input.contributors.sort((a, b) => b.contributions - a.contributions)[0];
+     busFactor = Math.round((topContributor.contributions / totalContributions) * 100);
+
+     if (busFactor > 90) {
+        riskLevel = 'High Organization Risk';
+        riskReasoning = `High bus factor (${busFactor}% of sampled commits by one person).`;
+     } else if (busFactor > 60) {
+        riskLevel = 'Moderate Risk';
+        riskReasoning = `Moderate bus factor (${busFactor}% of sampled commits by one person).`;
+     } else {
+        riskLevel = 'Healthy & Decentralized';
+     }
+  }
+
+  const finalReasoning = [reasoning, riskReasoning].filter(Boolean).join(' ');
+
   return {
     repository: input.repoData.fullName,
     url: `https://github.com/${input.repoData.fullName}`,
@@ -37,7 +60,9 @@ export function analyzeRepo(
     activityScore,
     complexityScore,
     learningDifficulty: level,
-    reasoning,
+    busFactor,
+    riskLevel,
+    reasoning: finalReasoning,
     metrics: {
       commitsLastYear: input.commitActivity.totalCommitsLastYear,
       openIssues: input.repoData.openIssues,
