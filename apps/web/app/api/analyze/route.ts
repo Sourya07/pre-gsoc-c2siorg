@@ -49,6 +49,8 @@ export async function POST(request: NextRequest) {
               activityScore: 0,
               complexityScore: 0,
               learningDifficulty: 'Beginner' as const,
+              busFactor: 0,
+              riskLevel: 'Healthy & Decentralized' as const,
               reasoning: 'Invalid or unrecognized GitHub URL',
               metrics: {
                 commitsLastYear: 0,
@@ -83,6 +85,8 @@ export async function POST(request: NextRequest) {
               activityScore: 0,
               complexityScore: 0,
               learningDifficulty: 'Beginner' as const,
+              busFactor: 0,
+              riskLevel: 'Healthy & Decentralized' as const,
               reasoning: 'Repository not found or not accessible',
               metrics: {
                 commitsLastYear: 0,
